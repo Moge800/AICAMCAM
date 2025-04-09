@@ -8,6 +8,8 @@ import threading
 from datetime import datetime
 import numpy as np
 from collections import deque  # 録画用バッファ用に追加
+import humanize
+from flask import send_from_directory
 
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 app = Flask(__name__)
@@ -224,6 +226,54 @@ def video_feed():
 def detect_count():
     count = frame_generator.get_detect_count()
     return jsonify(count=count)
+
+
+# recordsディレクトリへのパスを設定
+RECORDS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "records")
+
+# ディレクトリが存在しない場合は作成
+if not os.path.exists(RECORDS_DIR):
+    os.makedirs(RECORDS_DIR)
+
+
+@app.route("/records")
+def records_list():
+    """
+    recordsフォルダ内のファイル一覧を表示する
+    """
+    files = []
+
+    # recordsディレクトリ内のファイルを取得
+    for filename in os.listdir(RECORDS_DIR):
+        file_path = os.path.join(RECORDS_DIR, filename)
+        if os.path.isfile(file_path):
+            # ファイルの情報を取得
+            stats = os.stat(file_path)
+            modified_time = datetime.fromtimestamp(stats.st_mtime)
+
+            files.append(
+                {
+                    "name": filename,
+                    "size": humanize.naturalsize(stats.st_size),
+                    "modified": modified_time.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+
+    # 更新日時の新しい順にソート
+    files.sort(key=lambda x: x["modified"], reverse=True)
+
+    return render_template("records_list.html", files=files)
+
+
+@app.route("/download/<filename>")
+def download_file(filename):
+    """
+    ファイルをダウンロードする
+
+    Args:
+        filename: ダウンロードするファイル名
+    """
+    return send_from_directory(RECORDS_DIR, filename, as_attachment=True)
 
 
 if __name__ == "__main__":
