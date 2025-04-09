@@ -1,0 +1,4 @@
+*.pt
+*.ffs_db
+/records
+/.github

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AICAMCAM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        select {
+            margin-right: 20px;
+            padding: 5px;
+        }
+
+        img {
+            border: 2px solid #333;
+            border-radius: 10px;
+        }
+    </style>
+    <script>
+        async function updateDetectCount() {
+            const response = await fetch('/detect_count');
+            const data = await response.json();
+            document.getElementById('detect_count').innerText = `DETECT_COUNT: ${data.count}`;
+        }
+
+        setInterval(updateDetectCount, 1000);  // 1秒ごとに更新
+
+        function updateVideoFeed() {
+            const frameSize = document.getElementById('frame_size').value;
+            const quality = document.getElementById('quality').value;
+            const [width, height] = frameSize.split(',');
+            const videoFeed = document.getElementById('video_feed');
+            videoFeed.src = `/video_feed?quality=${quality}`;
+            videoFeed.width = width;
+            videoFeed.height = height;
+        }
+
+        // 画像取得失敗時にコンテナ内にエラーメッセージを表示する関数
+        function handleImageError() {
+            const container = document.getElementById('video_container');
+            const videoFeed = document.getElementById('video_feed');
+            const width = videoFeed.width;
+            const height = videoFeed.height;
+            container.innerHTML = `<div style="width:${width}px; height:${height}px; display:flex; align-items:center; justify-content:center; border:2px solid #333; border-radius:10px; background-color:#f0f0f0;">[ConnectionError]</div>`;
+        }
+    </script>
+</head>
+
+<body>
+    <h1 id="detect_count">DETECT_COUNT: 0</h1>
+    <div class="controls">
+        <label for="frame_size">Frame Size:</label>
+        <select id="frame_size" onchange="updateVideoFeed()">
+            <option value="320,240">320x240</option>
+            <option value="640,480">640x480</option>
+            <option value="800,600">800x600</option>
+        </select>
+        <label for="quality">Quality:</label>
+        <select id="quality" onchange="updateVideoFeed()">
+            <option value="30">30</option>
+            <option value="60">60</option>
+            <option value="85">85</option>
+        </select>
+    </div>
+    <div id="video_container">
+        <img id="video_feed" src="/video_feed?quality=85" width="640" height="480" onerror="handleImageError()">
+    </div>
+</body>
+
+</html>
