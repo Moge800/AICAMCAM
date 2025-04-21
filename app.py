@@ -1,4 +1,5 @@
 import os
+os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 import time
 from flask import Flask, render_template, Response, jsonify, request
 from waitress import serve
@@ -11,7 +12,7 @@ from collections import deque  # 録画用バッファ用に追加
 import humanize
 from flask import send_from_directory
 
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
+
 app = Flask(__name__)
 model = YOLO("yolo11n.pt")
 
